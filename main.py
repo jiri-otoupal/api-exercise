@@ -69,9 +69,21 @@ def update_car(uid: str, car: CarDetailsInput):
             return JSONResponse({"detail": f"Car {cid} does not exist"})
 
         for key, value in dict(car).items():
-            if value is not None:
-                setattr(c, key, value)
+            setattr(c, key, value)
 
         session.commit()
 
     return JSONResponse({"detail": "Successfully updated car"}, status_code=200)
+
+
+@app.get("/cars")
+def get_cars():
+    with Session(engine) as session:
+        cars_raw = session.query(Car).all()
+
+        car_list = [dict(filter(lambda x: "_" not in x[0], car.__dict__.items())) for car in cars_raw]
+
+        return JSONResponse({"cars": car_list})
+
+    # TODO: make reservation
+    # TODO: list cars
