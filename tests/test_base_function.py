@@ -105,15 +105,19 @@ class BaseCallsCase(unittest.TestCase):
                               json={"make": "Toyota", "model": "ABC", "uid": "C124"})
         self.assertEqual(200, response.status_code)
         self.assertEqual({"detail": "Successfully added car"}, response.json())
+        response = self.sample_reserve_car()
+        self.assertEqual(200, response.status_code)
+        self.assertEqual({"detail": "Successfully reserved car C124 Toyota ABC"},
+                         response.json())
+
+    def sample_reserve_car(self):
         response = client.post("/car/reserve/",
                                json={"when": (
                                        datetime.datetime.now() + datetime.timedelta(
                                    minutes=86)).isoformat(
                                    "-"),
                                    "duration": 10})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"detail": "Successfully reserved car C124 Toyota ABC"},
-                         response.json())
+        return response
 
     def test_rand_reserve_adv(self):
         response = client.put("/car/add",
@@ -125,19 +129,9 @@ class BaseCallsCase(unittest.TestCase):
                               json={"make": "Toyota", "model": "AAX", "uid": "C125"})
         self.assertEqual(200, response.status_code)
         self.assertEqual({"detail": "Successfully added car"}, response.json())
-        response = client.post("/car/reserve/",
-                               json={"when": (
-                                       datetime.datetime.now() + datetime.timedelta(
-                                   minutes=86)).isoformat(
-                                   "-"),
-                                   "duration": 10})
+        response = self.sample_reserve_car()
         self.assertEqual(200, response.status_code)
-        response = client.post("/car/reserve/",
-                               json={"when": (
-                                       datetime.datetime.now() + datetime.timedelta(
-                                   minutes=86)).isoformat(
-                                   "-"),
-                                   "duration": 10})
+        response = self.sample_reserve_car()
         self.assertEqual(200, response.status_code)
 
 

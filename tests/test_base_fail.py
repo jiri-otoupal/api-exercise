@@ -56,10 +56,7 @@ class BaseCallsCase(unittest.TestCase):
         self.assertEqual({"detail": f"Car C123 does not exist"}, response.json())
 
     def test_reserve_too_ahead(self):
-        response = client.put("/car/add",
-                              json={"make": "Toyota", "model": "ABC", "uid": "C124"})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"detail": "Successfully added car"}, response.json())
+        self.populate_db_car()
         response = client.post("/car/reserve/C124",
                                json={"when": (
                                        datetime.datetime.now() + datetime.timedelta(
@@ -71,10 +68,7 @@ class BaseCallsCase(unittest.TestCase):
             response.json())
 
     def test_reserve_too_late(self):
-        response = client.put("/car/add",
-                              json={"make": "Toyota", "model": "ABC", "uid": "C124"})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"detail": "Successfully added car"}, response.json())
+        self.populate_db_car()
         response = client.post("/car/reserve/C124",
                                json={"when": (
                                    datetime.datetime.now()).isoformat("-"),
@@ -84,10 +78,7 @@ class BaseCallsCase(unittest.TestCase):
                          response.json())
 
     def test_reserve_duration_too_big(self):
-        response = client.put("/car/add",
-                              json={"make": "Toyota", "model": "ABC", "uid": "C124"})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"detail": "Successfully added car"}, response.json())
+        self.populate_db_car()
         response = client.post("/car/reserve/C124",
                                json={"when": (
                                        datetime.datetime.now() + datetime.timedelta(
@@ -99,10 +90,7 @@ class BaseCallsCase(unittest.TestCase):
                          response.json())
 
     def test_reserve_duration_too_small(self):
-        response = client.put("/car/add",
-                              json={"make": "Toyota", "model": "ABC", "uid": "C124"})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"detail": "Successfully added car"}, response.json())
+        self.populate_db_car()
         response = client.post("/car/reserve/C124",
                                json={"when": (
                                        datetime.datetime.now() + datetime.timedelta(
@@ -115,10 +103,7 @@ class BaseCallsCase(unittest.TestCase):
             response.json())
 
     def test_rand_reserve_double(self):
-        response = client.put("/car/add",
-                              json={"make": "Toyota", "model": "ABC", "uid": "C124"})
-        self.assertEqual(200, response.status_code)
-        self.assertEqual({"detail": "Successfully added car"}, response.json())
+        self.populate_db_car()
         response = client.post("/car/reserve/",
                                json={"when": (
                                        datetime.datetime.now() + datetime.timedelta(
@@ -136,6 +121,12 @@ class BaseCallsCase(unittest.TestCase):
                                    "duration": 10})
         self.assertEqual(400, response.status_code)
         self.assertEqual({"detail": "No Cars available for reservation"}, response.json())
+
+    def populate_db_car(self):
+        response = client.put("/car/add",
+                              json={"make": "Toyota", "model": "ABC", "uid": "C124"})
+        self.assertEqual(200, response.status_code)
+        self.assertEqual({"detail": "Successfully added car"}, response.json())
 
 
 if __name__ == '__main__':
