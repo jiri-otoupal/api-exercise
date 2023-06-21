@@ -6,8 +6,8 @@ from starlette.responses import JSONResponse
 
 from main import app
 from src.config import engine
+from src.inputs import CarInput, CarDetailsInput
 from src.models import Car
-from src.req_inputs import CarInput, CarDetailsInput
 
 
 @app.put("/addcar/")
