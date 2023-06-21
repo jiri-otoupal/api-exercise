@@ -1,1 +1,19 @@
-GET 127.0.0.1:8000/car/list
+GET http://127.0.0.1:8000/car/list
+
+###
+POST http://127.0.0.1:8000/car/reserve/C1
+Content-Type: application/json
+{
+   "when":"",
+   "duration": 50
+}
+
+###############
+
+PUT http://127.0.0.1:8000/car/add/
+Content-Type: application/json
+{
+"make":"asada",
+"model":"adas",
+"uid":"C1"
+}

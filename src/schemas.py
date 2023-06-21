@@ -10,3 +10,8 @@ class CarInput(BaseModel):
 class CarDetailsInput(BaseModel):
     make: str = None
     model: str = None
+
+
+class CarReservationInput(BaseModel):
+    when: str
+    duration: int

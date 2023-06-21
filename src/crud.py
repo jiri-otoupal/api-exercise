@@ -1,7 +1,13 @@
+from datetime import datetime, timedelta
+
 from sqlalchemy.orm import Session
 
 from .models import Car
-from .schemas import CarInput, CarDetailsInput
+from .schemas import CarInput, CarDetailsInput, CarReservationInput
+
+
+def get_car(db: Session, cid: int):
+    return db.query(Car).get(cid)
 
 
 def get_cars(db: Session) -> list:
@@ -17,7 +23,7 @@ def get_cars(db: Session) -> list:
     return car_list
 
 
-def add_car(db: Session, cid, car: CarInput):
+def add_car(db: Session, cid: int, car: CarInput):
     car = Car(cid=cid, make=car.make, model=car.model)
     db.add(car)
     db.commit()
@@ -44,3 +50,20 @@ def update_car(db: Session, cid: int, car: CarDetailsInput):
             setattr(c, key, value)
     db.commit()
     return c
+
+
+def reserve_car(db: Session, cid: int, car_rsv: CarReservationInput):
+    car = db.get(Car, cid)
+    car.reserved_since = datetime.fromisoformat(car_rsv.when)
+    car.reserved_minutes = car_rsv.duration
+
+    db.commit()
+    return car
+
+
+def get_free_car(db: Session):
+    car = db.query(Car).where(
+        (Car.reserved_since == None) | (
+                Car.reserved_since > (
+                datetime.now() + timedelta(hours=24)))).first()  # noqa
+    return car
