@@ -7,7 +7,7 @@ from .schemas import CarInput, CarDetailsInput, CarReservationInput
 
 
 def get_car(db: Session, cid: int):
-    return db.query(Car).get(cid)
+    return db.get(Car, cid)
 
 
 def get_cars(db: Session) -> list:

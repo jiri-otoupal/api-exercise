@@ -1,4 +1,3 @@
-import datetime
 import re
 
 from fastapi import APIRouter, Depends
@@ -9,20 +8,27 @@ from starlette.responses import JSONResponse
 from src import crud
 from src.database import get_db
 from src.schemas import CarInput, CarDetailsInput, CarReservationInput
+from src.utils import do_check
 
 router = APIRouter()
 
 
 @router.put("/add/")
-async def add_car(car: CarInput, db: Session = Depends(get_db)):
-    if not (match := re.match(r"^C(\d+)$", car.uid)):
+async def add_car(car_details: CarInput, db: Session = Depends(get_db)):
+    """
+
+    @param car_details: Car Details
+    @param db: Database session
+    @return:
+    """
+    if not (match := re.match(r"^C(\d+)$", car_details.uid)):
         return JSONResponse(
             {"detail": "UID of car is in invalid format. Proper format 'C<number>'"},
             status_code=400)
     cid = match.group(1)
 
     try:
-        crud.add_car(db=db, cid=cid, car=car)
+        crud.add_car(db=db, cid=cid, car=car_details)
 
     except IntegrityError:
         return JSONResponse({"detail": "Car with this UID exists"}, status_code=409)
@@ -35,6 +41,12 @@ async def add_car(car: CarInput, db: Session = Depends(get_db)):
 
 @router.delete("/rm/{car_uid}")
 async def rm_car(car_uid, db: Session = Depends(get_db)):
+    """
+
+    @param car_uid: Unique Identifier of Car for deletion
+    @param db: Database session
+    @return:
+    """
     if not (match := re.match(r"^C(\d+)$", car_uid)):
         return JSONResponse({
             "detail": "UID of car is in invalid format. Proper format 'C<number>'"},
@@ -48,14 +60,22 @@ async def rm_car(car_uid, db: Session = Depends(get_db)):
 
 
 @router.post("/update/{uid}")
-async def update_car(uid: str, car: CarDetailsInput, db: Session = Depends(get_db)):
+async def update_car(uid: str, car_details: CarDetailsInput,
+                     db: Session = Depends(get_db)):
+    """
+
+    @param uid: Unique Identifier of Car for update
+    @param car_details: Details that will be changed
+    @param db: Database session
+    @return:
+    """
     if not (match := re.match(r"^C(\d+)$", uid)):
         return JSONResponse(
             {"detail": "UID of car is in invalid format. Proper format 'C<number>'"},
             status_code=400)
     cid = match.group(1)
 
-    c = crud.update_car(db=db, cid=cid, car=car)
+    c = crud.update_car(db=db, cid=cid, car=car_details)
     if c is None:
         return JSONResponse({"detail": f"Car {uid} does not exist"}, status_code=400)
 
@@ -64,50 +84,26 @@ async def update_car(uid: str, car: CarDetailsInput, db: Session = Depends(get_d
 
 @router.get("/list")
 async def get_cars(db: Session = Depends(get_db)):
+    """
+    Get All Cars
+    @param db: Database session
+    @return:
+    """
     car_list = crud.get_cars(db)
 
     return JSONResponse({"cars": car_list})
 
 
-def do_check(car, uid, rsv_info):
-    if car is None:
-        return JSONResponse({"detail": f"Car {uid} does not exist"}, status_code=400)
-
-    if car.reserved_since is not None:
-
-        if (
-                datetime.datetime.now() - car.reserved_since).seconds < 24 * 60 * 60:
-            return JSONResponse({"detail": f"Car {uid} is already reserved"},
-                                status_code=400)
-
-    if rsv_info.duration > 60 * 2:
-        return JSONResponse(
-            {"detail": "Reservation duration too long, maximum is 2 hours"},
-            status_code=400)
-
-    if rsv_info.duration < 1:
-        return JSONResponse(
-            {"detail": "Reservation duration too short, minimum is 1 minute"},
-            status_code=400)
-
-    if (datetime.datetime.fromisoformat(
-            rsv_info.when) < datetime.datetime.now()):
-        return JSONResponse(
-            {"detail": "Reservations can not be made into history"},
-            status_code=400)
-
-    if (datetime.datetime.fromisoformat(
-            rsv_info.when) - datetime.datetime.now()) > datetime.timedelta(hours=24):
-        return JSONResponse(
-            {"detail": "Reservations must be made no more than 24 hours in advance."},
-            status_code=400)
-
-    return JSONResponse({}, status_code=200)
-
-
 @router.post("/reserve/{uid}")
 async def reserve_car(uid: str, rsv_info: CarReservationInput,
                       db: Session = Depends(get_db)):
+    """
+    Reserve Specific Car
+    @param uid: UID of car Example C123
+    @param rsv_info: Reservation info
+    @param db: Database session
+    @return:
+    """
     if not (match := re.match(r"^C(\d+)$", uid)):
         return JSONResponse(
             {"detail": "UID of car is in invalid format. Proper format 'C<number>'"},
@@ -127,6 +123,12 @@ async def reserve_car(uid: str, rsv_info: CarReservationInput,
 @router.post("/reserve/")
 async def reserve_car_rand(rsv_info: CarReservationInput,
                            db: Session = Depends(get_db)):
+    """
+    Random Car Reservation
+    @param rsv_info:  Info
+    @param db: Database Session
+    @return:
+    """
     car = crud.get_free_car(db=db)
 
     if car is None:
