@@ -13,6 +13,8 @@ class Car(Base):
     reserved_minutes = Column(Integer, nullable=True, default=None)
 
 
-if __name__ == "__main__":
-
+def init():
     Base.metadata.create_all(engine)
+
+
+init()
