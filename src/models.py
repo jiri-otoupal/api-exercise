@@ -1,7 +1,5 @@
 from sqlalchemy import String, Column, DateTime, Integer
-from sqlalchemy.orm import declarative_base
-
-Base = declarative_base()
+from src.database import Base
 
 
 class Car(Base):
@@ -15,6 +13,6 @@ class Car(Base):
 
 
 if __name__ == "__main__":
-    from config import engine
+    from src.database import engine, Base
 
     Base.metadata.create_all(engine)

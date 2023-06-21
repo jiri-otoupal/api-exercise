@@ -1,29 +1,27 @@
 import re
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 from starlette.responses import JSONResponse
 
-from src.config import engine
-from src.inputs import CarInput, CarDetailsInput
+from src import crud
+from src.database import engine, get_db
+from src.schemas import CarInput, CarDetailsInput
 from src.models import Car
 
 router = APIRouter()
 
 
 @router.put("/add/")
-async def add_car(car: CarInput):
+async def add_car(car: CarInput, db: Session = Depends(get_db)):
     if not (match := re.match(r"^C(\d+)$", car.uid)):
         return JSONResponse(
             {"detail": "UID of car is in invalid format. Proper format 'C<number>'"})
     cid = match.group(1)
 
     try:
-        with Session(engine) as session:
-            car = Car(cid=cid, make=car.make, model=car.model)
-            session.add(car)
-            session.commit()
+        crud.add_car(db=db, cid=cid, car=car)
 
     except IntegrityError:
         return JSONResponse({"detail": "Car with this UID exists"}, status_code=409)
@@ -35,7 +33,7 @@ async def add_car(car: CarInput):
 
 
 @router.delete("/rm/{car_uid}")
-async def rm_car(car_uid):
+async def rm_car(car_uid, db: Session = Depends(get_db)):
     try:
         with Session(engine) as session:
             if not (match := re.match(r"^C(\d+)$", car_uid)):
@@ -43,12 +41,9 @@ async def rm_car(car_uid):
                     "detail": "UID of car is in invalid format. Proper format 'C<number>'"})
             cid = match.group(1)
 
-            c = session.get(Car, cid)
+            c = crud.rm_car(db=db, cid=cid)
             if c is None:
                 return JSONResponse({"detail": f"Car {car_uid} does not exist"})
-
-            session.delete(c)
-            session.commit()
 
             return JSONResponse({"detail": "Successfully removed car"}, status_code=200)
     except IntegrityError:
@@ -56,35 +51,24 @@ async def rm_car(car_uid):
 
 
 @router.post("/update/{uid}")
-def update_car(uid: str, car: CarDetailsInput):
+async def update_car(uid: str, car: CarDetailsInput, db: Session = Depends(get_db)):
     if not (match := re.match(r"^C(\d+)$", uid)):
         return JSONResponse(
             {"detail": "UID of car is in invalid format. Proper format 'C<number>'"})
     cid = match.group(1)
 
-    with Session(engine) as session:
-        c = session.get(Car, cid)
-        if c is None:
-            return JSONResponse({"detail": f"Car {cid} does not exist"})
-
-        for key, value in dict(car).items():
-            if value is not None:
-                setattr(c, key, value)
-
-        session.commit()
+    c = crud.update_car(db=db, cid=cid, car=car)
+    if c is None:
+        return JSONResponse({"detail": f"Car {cid} does not exist"}, status_code=400)
 
     return JSONResponse({"detail": "Successfully updated car"}, status_code=200)
 
 
 @router.get("/list")
-def get_cars():
-    with Session(engine) as session:
-        cars_raw = session.query(Car).all()
+async def get_cars(db: Session = Depends(get_db)):
+    car_list = crud.get_cars(db)
 
-        car_list = [dict(filter(lambda x: "_" not in x[0], car.__dict__.items())) for car
-                    in cars_raw]
-
-        return JSONResponse({"cars": car_list})
+    return JSONResponse({"cars": car_list})
 
     # TODO: make reservation
     # TODO: list cars
