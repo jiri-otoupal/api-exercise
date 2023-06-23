@@ -13,11 +13,11 @@ To run this application, you need to have the following software installed:
 
 #### Installation
 
-    Clone the repository:
+Clone the repository:
 
-`$ git clone https://github.com/jiri-otoupal/api-exercise.git`
-\
-`$ cd api-exercise`
+    `$ git clone https://github.com/jiri-otoupal/api-exercise.git`
+    \
+    `$ cd api-exercise`
 
 Create a virtual environment and activate it:
 
@@ -30,7 +30,7 @@ Install the dependencies:
 
 Run the application:
 
-    $ python app.py
+    $ python -m uvicorn main:app
 
     The API will be accessible at http://localhost:8000.
 
