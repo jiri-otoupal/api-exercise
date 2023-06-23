@@ -16,7 +16,7 @@ To run this application, you need to have the following software installed:
 Clone the repository:
 
     $ git clone https://github.com/jiri-otoupal/api-exercise.git
-    \
+    
     $ cd api-exercise
 
 Create a virtual environment and activate it:
