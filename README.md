@@ -15,9 +15,9 @@ To run this application, you need to have the following software installed:
 
 Clone the repository:
 
-    `$ git clone https://github.com/jiri-otoupal/api-exercise.git`
+    $ git clone https://github.com/jiri-otoupal/api-exercise.git
     \
-    `$ cd api-exercise`
+    $ cd api-exercise
 
 Create a virtual environment and activate it:
 
@@ -32,7 +32,7 @@ Run the application:
 
     $ python -m uvicorn main:app
 
-    The API will be accessible at http://localhost:8000.
+The API will be accessible at http://localhost:8000.
 
 Endpoints
 Add Car
